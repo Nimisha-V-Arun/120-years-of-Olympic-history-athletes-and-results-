@@ -19,7 +19,7 @@ from mlxtend.preprocessing import TransactionEncoder
 data = pd.read_csv("dataSource/athlete_events.csv")
 #data.info()
 print(data.shape)
-data.head(100)
+data.head(1)
 
 
 # # Data preprocessing
@@ -30,14 +30,14 @@ data.head(100)
 data.isna().sum()
 
 
-# ## The data has 9474 null values in Age , hence will be substituting with the mean
+# ## The data has 9474 null values in Age , hence will be substituting with the mode
 
 # In[4]:
 
 
-AgeMean = int(data['Age'].mean())
-print('Age Mean', AgeMean)
-data['Age'] = data['Age'].fillna(AgeMean)
+AgeMode = int(data['Age'].mode()[0])
+print('Age Mode', AgeMode)
+data['Age'] = data['Age'].fillna(AgeMode)
 data['Age'].isna().sum()
 
 
@@ -217,7 +217,7 @@ freq_Itemsets_Boxing
 
 # # Cycling
 
-# In[32]:
+# In[17]:
 
 
 Cycling = makeSelectiveSportDataset(data,'Cycling',['Sex','Age', 'Height','Weight','Team','Medal'])
@@ -292,7 +292,7 @@ freq_Itemsets_Gymnastics
 
 # # Handball
 
-# In[33]:
+# In[21]:
 
 
 Handball = makeSelectiveSportDataset(data,'Handball',['Sex','Age', 'Height','Weight','Team','Medal'])
@@ -309,7 +309,7 @@ freq_Itemsets_Handball
 
 # # Judo
 
-# In[21]:
+# In[22]:
 
 
 Judo = makeSelectiveSportDataset(data,'Judo',['Sex','Age', 'Height','Weight','Team','Medal'])

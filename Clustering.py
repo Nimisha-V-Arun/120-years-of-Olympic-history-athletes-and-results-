@@ -157,7 +157,8 @@ olympics_complete.head()
 olympics_complete['Medal_Won'] = np.where(olympics_complete.loc[:,'Medal'] == 'None', 0, 1)
 medalC = olympics_complete.groupby(['Team'])['Medal_Won'].agg('sum').reset_index()
 medal_count_per_country = medalC.sort_values('Medal_Won',ascending = False)
-medal_count_per_country.head()
+#medal_count_per_country = medal_count_per_country.iloc[:136,:]
+medal_count_per_country
 
 
 # ## GDP for the Year 2016
@@ -167,7 +168,7 @@ medal_count_per_country.head()
 
 ### GDP
 ###### TYG = 'Team,Year,GDP'
-TYG = olympics_complete[olympics_complete['Year'] == 2016][['Team','Year','GDP']]
+TYG = olympics_complete[olympics_complete['Year'] == 2016 ][['Team','Year','GDP']]
 
 gdp = {}
 
@@ -192,34 +193,89 @@ for index,row in TYP.iterrows():
 medal_count_per_country['Population'] = medal_count_per_country['Team'].map(popu)
 medal_count_per_country['Population'] = medal_count_per_country['Population'].fillna(1)
 
-medal_count_per_country.head(3)
+
+## This is done to remove all the instances with missing or negligible population or GDP inorder to futher normalise the data 
+medal_count_per_country = medal_count_per_country[medal_count_per_country['Population']>10000]
 
 
 # In[7]:
 
 
+medal_count_per_country['Medal_WonNorm'] = (medal_count_per_country['Medal_Won']-medal_count_per_country['Medal_Won'].mean())/np.std(medal_count_per_country['Medal_Won'],axis = 0)
+medal_count_per_country['GDPNorm'] = (medal_count_per_country['GDP']-medal_count_per_country['GDP'].mean())/np.std(medal_count_per_country['GDP'],axis = 0)
+medal_count_per_country['PopulationNorm'] = (medal_count_per_country['Population']-medal_count_per_country['Population'].mean())/np.std(medal_count_per_country['Population'],axis = 0)
+
+topMedalHolders = medal_count_per_country
+topMedalHolders
 
 
-topMedalHolders = medal_count_per_country.head(150).sort_values('GDP',ascending = False)
-
-
-# # Hierarchical Clustering
+# # K Means Clustering
 
 # # on Medal_Won vs GDP
 
 # In[8]:
 
 
-topMedalHolders = medal_count_per_country.head(150).sort_values('GDP',ascending = False)
+# find the appropriate cluster number
+plt.figure(figsize=(10, 8))
+from sklearn.cluster import KMeans
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
+    kmeans.fit(topMedalHolders.iloc[:, [1, 2]].values)
+    wcss.append(kmeans.inertia_)
+plt.plot(range(1, 11), wcss)
+plt.title('The Elbow Method')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+plt.figure(figsize=(10, 8))
+
+# Fitting K-Means to the dataset
+from mpl_toolkits.mplot3d import Axes3D
+
+kmeans = KMeans(n_clusters = 3, init = 'k-means++', random_state = 42)
+y_kmeans = kmeans.fit_predict(topMedalHolders[['Medal_WonNorm','GDPNorm']])
+
+centroids = kmeans.cluster_centers_
+
+#beginning of  the cluster numbering with 1 instead of 0
+y_kmeans1=y_kmeans
+y_kmeans1=y_kmeans+1
+# New Dataframe called cluster
+cluster = pd.DataFrame(y_kmeans1)
+# Adding cluster to the Dataset1
+topMedalHolders['cluster'] = cluster
+#Mean of clusters
+kmeans_mean_cluster = pd.DataFrame(round(topMedalHolders.groupby('cluster').mean(),1))
+kmeans_mean_cluster
+
+plt.title('Clusters of Countries')
+plt.xlabel('Medal Count')
+plt.ylabel('GDP')
+plt.scatter( topMedalHolders['Medal_WonNorm'],topMedalHolders['GDPNorm'],s = 100,c= kmeans.labels_.astype(float), alpha=0.5)
+plt.scatter(centroids[:, 0], centroids[:, 1],s= 50, c=['red','white','blue'])
+
+
+
+# # Hierarchical Clustering
+
+# # on Medal_Won vs GDP
+
+# In[9]:
+
+
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
 # Importing the dataset
-X = topMedalHolders.iloc[:, [1, 2]].values
+X = topMedalHolders.iloc[:, [6, 4]].values
+#print(X)
 # y = dataset.iloc[:, 3].values
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(10,18))
 
 # Using the dendrogram to find the optimal number of clusters
 import scipy.cluster.hierarchy as sch
@@ -231,19 +287,19 @@ plt.show()
 
 # Fitting Hierarchical Clustering to the dataset
 from sklearn.cluster import AgglomerativeClustering
-hc = AgglomerativeClustering(n_clusters = 5, affinity = 'euclidean', linkage = 'ward')
+hc = AgglomerativeClustering(n_clusters = 3, affinity = 'euclidean', linkage = 'ward')
 y_hc = hc.fit_predict(X)
 
 
 # Visualising the clusters
-plt.figure(figsize=(20,20))
-plt.xticks(np.arange(min(topMedalHolders['Medal_Won']), max(topMedalHolders['Medal_Won']), 800)) 
+plt.figure(figsize=(10,18))
+plt.xticks(np.arange(min(topMedalHolders['Medal_WonNorm']), max(topMedalHolders['Medal_WonNorm']), 800)) 
 #plt.xticks(np.arange(min(topMedalHolders['GDP']), max(topMedalHolders['GDP']),1.084733e+05)) 
 plt.scatter(X[y_hc == 0, 0], X[y_hc == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
 plt.scatter(X[y_hc == 1, 0], X[y_hc == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
 plt.scatter(X[y_hc == 2, 0], X[y_hc == 2, 1], s = 100, c = 'green', label = 'Cluster 3')
-plt.scatter(X[y_hc == 3, 0], X[y_hc == 3, 1], s = 100, c = 'Black', label = 'USA')
-plt.scatter(X[y_hc == 4, 0], X[y_hc == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
+#plt.scatter(X[y_hc == 3, 0], X[y_hc == 3, 1], s = 100, c = 'Black', label = 'USA')
+#plt.scatter(X[y_hc == 4, 0], X[y_hc == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
 plt.title('Clusters of Countries')
 plt.xlabel('Medal Count')
 plt.ylabel('GDP')
@@ -251,21 +307,78 @@ plt.legend()
 plt.show()
 
 
+# # Results on no_of_medals_won vs GDP:
+# ### On comparing the results of the K-Means clustering and Hierachial clustering to divide of the instances into clusters, both the results seem to follow almost similar distribution.
+# ### Using the result of the elbow method of k-means clustering, 3 was found to be the appropriate no of clusters. Hence, for both the k-means and hierarchial clustering I chose 3 as the ideal no of clusters for better analysis.
+# ### The clusters formed are as follows:
+#      1. Green Cluster: with very few medals and less GDP.
+#      2. Red Cluster: with average range  of no of medals and average distributed GDP
+#      3. Blue Cluster: the highest no of medals and highest GDP     
+
 # # on Medal_Won vs Population
 
-# In[9]:
+# # K Means Clustering
+
+# In[10]:
 
 
-topMedalHolders = medal_count_per_country.head(150)
+# find the appropriate cluster number
+plt.figure(figsize=(10, 8))
+from sklearn.cluster import KMeans
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
+    kmeans.fit(topMedalHolders.iloc[:, [6, 5]].values)
+    wcss.append(kmeans.inertia_)
+plt.plot(range(1, 11), wcss)
+plt.title('The Elbow Method')
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+plt.figure(figsize=(10, 8))
+
+# Fitting K-Means to the dataset
+from mpl_toolkits.mplot3d import Axes3D
+
+kmeans = KMeans(n_clusters = 4, init = 'k-means++', random_state = 42)
+y_kmeans = kmeans.fit_predict(topMedalHolders[['Medal_WonNorm','PopulationNorm']])
+
+centroids = kmeans.cluster_centers_
+
+#beginning of  the cluster numbering with 1 instead of 0
+y_kmeans1=y_kmeans
+y_kmeans1=y_kmeans+1
+# New Dataframe called cluster
+cluster = pd.DataFrame(y_kmeans1)
+# Adding cluster to the Dataset1
+topMedalHolders['cluster'] = cluster
+#Mean of clusters
+kmeans_mean_cluster = pd.DataFrame(round(topMedalHolders.groupby('cluster').mean(),1))
+kmeans_mean_cluster
+
+plt.title('Clusters of Countries')
+plt.xlabel('Medal Count')
+plt.ylabel('Population')
+plt.scatter( topMedalHolders['Medal_WonNorm'],topMedalHolders['PopulationNorm'],s = 100,c= kmeans.labels_.astype(float), alpha=0.5)
+plt.scatter(centroids[:, 0], centroids[:, 1],s = 50, c=['red','white','blue','cyan'])
+
+
+
+# # Hierarchial Clustering 
+
+# In[11]:
+
+
 # Importing the libraries
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
 # Importing the dataset
-X = topMedalHolders.iloc[:, [1, 3]].values
+X = topMedalHolders.iloc[:, [6, 5]].values
 # y = dataset.iloc[:, 3].values
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(10, 8))
 
 # Using the dendrogram to find the optimal number of clusters
 import scipy.cluster.hierarchy as sch
@@ -277,17 +390,17 @@ plt.show()
 
 # Fitting Hierarchical Clustering to the dataset
 from sklearn.cluster import AgglomerativeClustering
-hc = AgglomerativeClustering(n_clusters = 5, affinity = 'euclidean', linkage = 'ward')
+hc = AgglomerativeClustering(n_clusters = 4, affinity = 'euclidean', linkage = 'ward')
 y_hc = hc.fit_predict(X)
 
 
 # Visualising the clusters
-plt.figure(figsize=(20,20))
+plt.figure(figsize=(10, 8))
 plt.scatter(X[y_hc == 0, 0], X[y_hc == 0, 1], s = 100, c = 'red', label = 'Cluster 1')
 plt.scatter(X[y_hc == 1, 0], X[y_hc == 1, 1], s = 100, c = 'blue', label = 'Cluster 2')
 plt.scatter(X[y_hc == 2, 0], X[y_hc == 2, 1], s = 100, c = 'green', label = 'Cluster 3')
 plt.scatter(X[y_hc == 3, 0], X[y_hc == 3, 1], s = 100, c = 'cyan', label = 'Cluster 4')
-plt.scatter(X[y_hc == 4, 0], X[y_hc == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
+#plt.scatter(X[y_hc == 4, 0], X[y_hc == 4, 1], s = 100, c = 'magenta', label = 'Cluster 5')
 plt.title('Clusters of Countries')
 plt.xlabel('Medal Count')
 plt.ylabel('Population')
@@ -295,24 +408,34 @@ plt.legend()
 plt.show()
 
 
+# # Results on no_of_medals_won vs Population:
+# ### On comparing the results of the K-Means clustering and Hierachial clustering to divide of the instances into clusters, both the results seem to follow almost similar distribution.
+# ### Using the result of the elbow method of k-means clustering,  4 was found to be the appropriate no of clusters. Hence, for both the k-means and hierarchial clustering I chose 4 as the ideal no of clusters for better analysis.
+# ### The clusters formed are as follows:
+#      1. Blue Cluster: with very few medals and very less Population.
+#      2. Red Cluster: with relatively higher no of medals when compared to 'Blue' Cluster,(average no of medals) but less Population
+#      3. Cyan Cluster: with many medals and relatively less population.
+#      4. Green Cluster: with relatively fewer medal but very large popuation
+#      
+
 # # $$ $$
 # 
 # 
 # 
 
-# # KMeans Clustering
+# # KMeans Clustering to see the distribution of Height and Weight of players
 
 # # Standardize the data to normal distribution
 # 
 
-# In[10]:
+# In[12]:
 
 
 data['HeightNorm'] = (data['Height']-data['Height'].mean())/np.std(data['Height'],axis = 0)
 data['WeightNorm'] = (data['Weight']-data['Weight'].mean())/np.std(data['Weight'],axis = 0)
 
 
-# In[11]:
+# In[13]:
 
 
 ## Input for K Means Algo
@@ -330,7 +453,7 @@ Height_Weight.head()
 # # Find the appropriate cluster number
 # 
 
-# In[12]:
+# In[14]:
 
 
 # find the appropriate cluster number
@@ -378,13 +501,13 @@ plt.scatter(centroids[:, 0], centroids[:, 1], c=['red','white','blue'])
 
 # ## Winning Medals
 
-# In[13]:
+# In[15]:
 
 
 Height_Weight_Win = Height_Weight_Win[['HeightNorm','WeightNorm']]
 
 
-# In[14]:
+# In[16]:
 
 
 # find the appropriate cluster number
@@ -434,7 +557,7 @@ plt.scatter(centroids[:, 0], centroids[:, 1], c=['red','white','blue'])
 #     a) For all the Players
 #     b) For all Medalists
 # 
-# ### Both of them follow a similar distribution, and hence the winners and non-winners do not show a huge  difference in their height and weight. This shows that, taking the height and weight into considerance, all the players have almost equally likely chances to win a medal.
+# ### Both of them follow a similar distribution, and hence the winners and non-winners do not show a huge  difference in their height and weight. This shows that, taking the height and weight into considerence, all the players have almost equally likely chances to win a medal.
 '''
 data = olympics_merge_gdp
 df = pd.DataFrame(data[['Team','Year','GDP','Medal']],columns = ['Team','Year','GDP','Medal'])
