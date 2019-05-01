@@ -209,9 +209,15 @@ topMedalHolders = medal_count_per_country
 topMedalHolders
 
 
-# # K Means Clustering
+# In[19]:
+
+
+topMedalHolders.columns
+
 
 # # on Medal_Won vs GDP
+
+# # K Means Clustering
 
 # In[8]:
 
@@ -222,7 +228,7 @@ from sklearn.cluster import KMeans
 wcss = []
 for i in range(1, 11):
     kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
-    kmeans.fit(topMedalHolders.iloc[:, [1, 2]].values)
+    kmeans.fit(topMedalHolders.iloc[:, [4, 5]].values)
     wcss.append(kmeans.inertia_)
 plt.plot(range(1, 11), wcss)
 plt.title('The Elbow Method')
@@ -261,8 +267,6 @@ plt.scatter(centroids[:, 0], centroids[:, 1],s= 50, c=['red','white','blue'])
 
 # # Hierarchical Clustering
 
-# # on Medal_Won vs GDP
-
 # In[9]:
 
 
@@ -272,7 +276,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Importing the dataset
-X = topMedalHolders.iloc[:, [6, 4]].values
+X = topMedalHolders.iloc[:, [4, 5]].values
 #print(X)
 # y = dataset.iloc[:, 3].values
 plt.figure(figsize=(10,18))
@@ -328,7 +332,7 @@ from sklearn.cluster import KMeans
 wcss = []
 for i in range(1, 11):
     kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 42)
-    kmeans.fit(topMedalHolders.iloc[:, [6, 5]].values)
+    kmeans.fit(topMedalHolders.iloc[:, [4, 6]].values)
     wcss.append(kmeans.inertia_)
 plt.plot(range(1, 11), wcss)
 plt.title('The Elbow Method')
@@ -376,7 +380,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Importing the dataset
-X = topMedalHolders.iloc[:, [6, 5]].values
+X = topMedalHolders.iloc[:, [4, 6]].values
 # y = dataset.iloc[:, 3].values
 plt.figure(figsize=(10, 8))
 

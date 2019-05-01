@@ -27,6 +27,8 @@ data.head(1)
 # In[3]:
 
 
+print(data.shape)
+print(data.columns)
 data.isna().sum()
 
 
@@ -178,7 +180,7 @@ freq_Itemsets_Archery
 # ### Result:
 #      1. Age distribution is even.
 #      2. Height and Weight ((Height:180-190), (Weight:70-80)) is found to be common .
-#      3. Men have a higher chance of winning
+# 
 
 # # Basket Ball
 
@@ -196,7 +198,7 @@ freq_Itemsets_BasketBall
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height and Weight does not matter.
-#      3. Men have a higher chance of winning
+# 
 
 # # Boxing
 
@@ -213,7 +215,7 @@ freq_Itemsets_Boxing
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height ranging between ((Height:180-190)) is found to be common .
-#      3. Men have a higher chance of winning
+# 
 
 # # Cycling
 
@@ -232,7 +234,6 @@ freq_Itemsets_Cycling
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Age-Height-Weight ranging between (Age:20-30),(Height:180-190), (Weight:70-80)) is found to be doing well .
-#      3. Men have a higher chance of winning
 #     
 
 # # Diving 
@@ -251,7 +252,7 @@ freq_Itemsets_Diving
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height and Weight does not matter.
-#      3. Men have a higher chance of winning
+# 
 
 # # Football
 
@@ -269,7 +270,6 @@ freq_Itemsets_Football
 # ### Result:
 #      1. Age group between 20-30 has a high support, hence greater chance of winning a medal.
 #      2. Age-Height-Weight ranging between (Age:20-30),(Height:180-190), (Weight:70-80)) is found to be doing well .
-#      3. Men have a higher chance of winning
 #     
 
 # # Gymnastics
@@ -288,7 +288,7 @@ freq_Itemsets_Gymnastics
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height and Weight ((Height:180-190), (Weight:70-80)) is found to be common .
-#      3. Men have a higher chance of winning
+# 
 
 # # Handball
 
@@ -305,7 +305,7 @@ freq_Itemsets_Handball
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height and Weight does not matter.
-#      3. Men have a higher chance of winning
+# 
 
 # # Judo
 
@@ -322,7 +322,7 @@ freq_Itemsets_Judo
 # ### Result:
 #      1. Age group between 20-30 is common and have won many bronze medals
 #      2. Height and Weight does not matter.
-#      3. Men have a higher chance of winning
+# 
 
 # # Speed Skating
 
@@ -340,7 +340,7 @@ freq_Itemsets_SpeedSkt
 # ### Result:
 #      1. Age group between 20-30 is common.
 #      2. Height ranging between ((Height:180-190)) is common	
-#      3. Men have a higher chance of winning
+# 
 
 # # $$ $$
 # 
